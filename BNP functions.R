@@ -5,7 +5,7 @@
 #Functions included:
 #split
 #log_loss
-#
+#numericColumns
 #
 ######################################################
 
@@ -43,6 +43,69 @@ split <- function(train)
 	#returns a list of both frames
 	return(bothFrames)
 }
+
+
+
+###############################################################################
+#Given a data frame, returns a vector of the column numbers of that data frame
+#which are numeric
+#
+#Skips first two columns because those are the id and target variables
+################################################################################
+numericColumns <- function(train)
+{
+	temp = numeric()
+	tempCounter = 1
+	for( z in 3: ncol(train))
+	{
+		if (is.numeric(train[,z]))
+		{
+			temp[tempCounter] = z
+			tempCounter = tempCounter + 1
+		}
+	}
+	
+	return(temp);
+}
+
+
+
+
+
+
+
+
+
+###############################################################################################
+#Takes a data frame as an arguement
+#Depends On: numericColumns
+#
+#turns all variables that are numeric from numericColumns into standard normal variables
+#returns the data frame with numeric variables normalized and all others left in tact
+###############################################################################################
+Normalize  <- function(train2)
+{
+	#gets the columns that are numeric
+	numberCol = numericColumns(train2)
+
+	#scale() is what normalizes the column, have to cast it as numeric first
+	#iterates over ever column deemed numeric by the numericColumns function
+	for (i in 1:length(numberCol))
+	{
+		train2[,numberCol[i]] = as.numeric(scale(train2[,numberCol[i]])) 
+	}	
+	
+	return(train2);
+}
+
+
+
+
+
+
+
+
+
 
 
 
