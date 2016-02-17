@@ -8,7 +8,7 @@
 
 #rename function
 library(plyr)
-
+library(gbm)
 
 
 #import datasets
@@ -30,13 +30,20 @@ test2 = bothFrames[[2]]
 
 
 
+
+
+
+
+
+
+
+
 outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=2))
 outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb"))
 
 outputFrame = cbind(outputFrame, test2$target)
 outputFrame[,1] = test2[,1]
-outputFrame[,2] = .5
-
+outputFrame[,2] = .76
 
 log_loss(outputFrame)
 
@@ -46,65 +53,85 @@ log_loss(outputFrame)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###############################################################
+######################################################################################
+##GBM
+#GBM target~. -ID -v22, distribution = "adaboost", n.trees = 20, shrinkage = .1,
+#		interaction.depth =2, log_loss= .4907367
 #
-#The log_loss function takes one arguements, a data_frame which has the 
-#id, predictions, and actual
-#
-#
-#only works for binary outcome. For multicategory logloss, refer to Kaggle Telstra script
-#
-#################################################################
-log_loss <- function(data_frame)
+#200 trees with adaboost = .4732754
+#####################################################################################
+#have to tell R that fault_severity is a factor
+bTree = gbm(target~. -ID -v22, distribution = "bernoulli", n.trees = 20, shrinkage = .1,
+		interaction.depth =2,  data = train2)
+bTreeP = predict(bTree, newdata=test2, n.trees = 5000, type="response")
+bTreeP = as.data.frame(bTreeP)
+head(bTreeP)
+
+
+
+
+outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
+outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
+outputFrame[,1] = test2[,1]
+outputFrame[,2] = bTreeP[,1]
+outputFrame[,3] = test2$target
+
+
+#backups
+train5 = train2
+test5 = test2
+
+
+Normalize  <- function(train2)
 {
-	total = 0
-	for( i in 1:nrow(data_frame))
+
+	numberCol = numericColumns(train2)
+	
+	for (i in 1:length(numberCol))
 	{
-		
+		train2[
+	}	
+	
+}
 
-			y=0
-			#gets the id from the ith row of the data_frame
-			#if the actual fault_severity == j-1 then that is when y is 1
-			#This is the classification of the point
-			#The [1] just takes the first in case their are duplicate observations
-			#of the id
-			if (data_frame[i,3] == 1)
-			{
-				y=1;
-				
-			}
 
-			#total is equal to total plus y times
-			# the log of the ith row and the j+1 column
-			#it is j+1 because predict_0 is in column 2
-			total = total + y*log( max( min( data_frame[i,2], 1-10^(-15) ),  10^(-15) ) ) +
-				(1-y)*log( max( min((1- data_frame[i,2]), 1-10^(-15) ),  10^(-15) ) )
-			
 
-		
+
+head(outputFrame)
+log_loss(outputFrame)
+
+
+
+
+
+
+naDetect <- function (train,test)
+{
+	largest= 0
+	most = 1
+	for (i in 1:ncol(train))
+	{
+		if(sum(is.na(train[,i])) > largest)
+		{
+			largest = sum(is.na(train[,i]));
+			most = i;
+		}
 	}
-	print("Your logloss score is:")
-	print(-total/nrow(data_frame))
-
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
