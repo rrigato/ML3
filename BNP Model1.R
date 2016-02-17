@@ -49,59 +49,15 @@ log_loss(outputFrame)
 
 
 
+#runs gbm model
+output = gbmParse(train2,test2)
 
 
 
-
-######################################################################################
-##GBM
-#GBM target~. -ID -v22, distribution = "adaboost", n.trees = 20, shrinkage = .1,
-#		interaction.depth =2, log_loss= .4907367
-#
-#200 trees with adaboost = .4732754
-#####################################################################################
-#have to tell R that fault_severity is a factor
-bTree = gbm(target~. -ID -v22, distribution = "bernoulli", n.trees = 20, shrinkage = .1,
-		interaction.depth =2,  data = train2)
-bTreeP = predict(bTree, newdata=test2, n.trees = 5000, type="response")
-bTreeP = as.data.frame(bTreeP)
-head(bTreeP)
-
-
-
-
-outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
-outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
-outputFrame[,1] = test2[,1]
-outputFrame[,2] = bTreeP[,1]
-outputFrame[,3] = test2$target
-
-
+test2 = Normalize(test2)
 #backups
 train5 = train2
 test5 = test2
-
-
-Normalize  <- function(train2)
-{
-
-	numberCol = numericColumns(train2)
-	
-	for (i in 1:length(numberCol))
-	{
-		train2[
-	}	
-	
-}
-
-
-
-
-head(outputFrame)
-log_loss(outputFrame)
-
-
-
 
 
 

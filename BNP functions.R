@@ -4,9 +4,10 @@
 #
 #Functions included:
 #split
-#log_loss
 #numericColumns
-#
+#Normalize
+#log_loss
+#gbmParse
 ######################################################
 
 
@@ -162,6 +163,59 @@ log_loss <- function(data_frame)
 
 
 
+
+
+######################################################################################
+##gbmParse 
+#takes two dataframes with a train dataset and a test dataset. Builds a gbm model on the train
+#dataset and then gets predictions for the test dataset
+#
+#returns an output data frame with  3 variables: the ids of the test set, the predicted probability of
+#1 for the test set and the actual for the test set
+#
+#
+#Depends: log_loss
+#
+#
+#
+#
+#GBM target~. -ID -v22, distribution = "adaboost", n.trees = 20, shrinkage = .1,
+#		interaction.depth =2, log_loss= .4907367
+#
+#200 trees with adaboost = .4732754
+#
+#20 trees normalized numeric variables = .4922601
+#####################################################################################
+gbmParse <- function (train2, test2) {
+
+	#runs gbm takes out id and v22 because v22 has too many levels for a category
+	bTree = gbm(target~. -ID -v22, distribution = "bernoulli", n.trees = 300, shrinkage = .1,
+			interaction.depth =2,  data = train2)
+
+	#runs the gbm model on the test set giving back an output of probabilities
+	bTreeP = predict(bTree, newdata=test2, n.trees = 5000, type="response")
+	bTreeP = as.data.frame(bTreeP)
+	head(bTreeP)
+
+
+
+	#initializes and fills the outputFrame that will be tested in the log_loss function 
+	#and then returned
+	outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
+	outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
+	outputFrame[,1] = test2[,1]
+	outputFrame[,2] = bTreeP[,1]
+	outputFrame[,3] = test2$target
+
+	head(outputFrame)
+
+
+	#runs log_loss on train set
+	log_loss(outputFrame)
+	
+	#returns the outputed frame
+	return(outputFrame);
+}
 
 
 
