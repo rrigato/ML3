@@ -46,7 +46,7 @@ test5[,2] = as.factor(test5[,2])
 train5 = as.h2o(train5)
 test5 = as.h2o(test5)
 
-trainDL = h2o.deeplearning(x = 3:133,y = 2 , training_frame = train5)
+trainDL = h2o.deeplearning(x = 3:70,y = 2 , training_frame = train5)
 
 predictions <- h2o.predict(trainDL, newdata = test5, type = "probs")
 
@@ -66,6 +66,40 @@ log_loss(outputFrame)
 
 
 
+#runs gbm model
+output = gbmParse(train2,test2)
+
+
+
+##########################################################################################
+#ensemble of gbm with 300 trees and all variables and h2o.deeplearning with variables 3:70
+#.5 h20.deeplearning(.4756146) .5 gbm (.4689628) = .4625459
+#
+#
+#########################################################################################
+
+
+
+ensembleFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
+ensembleFrame = rename(ensembleFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
+
+
+ensembleFrame[,1] = outputFrame[,1]
+ensembleFrame[,3] = outputFrame[,3]
+ensembleFrame[,2] = .5 * outputFrame[,2] + .5* output[,2]
+
+log_loss(ensembleFrame)
+
+
+
+
+
+
+
+
+
+
+
 
 
 outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=2))
@@ -76,12 +110,6 @@ outputFrame[,1] = test2[,1]
 outputFrame[,2] = .76
 
 log_loss(outputFrame)
-
-
-
-#runs gbm model
-output = gbmParse(train2,test2)
-
 
 
 test2 = Normalize(test2)
