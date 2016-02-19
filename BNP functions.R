@@ -8,10 +8,11 @@
 #Normalize
 #log_loss
 #gbmParse
+#deepL
 ######################################################
 
 library(plyr)
-
+library(h2o)
 
 
 ################################################################
@@ -221,6 +222,68 @@ gbmParse <- function (train2, test2) {
 
 
 
+
+
+
+######################################################################
+#Deep Learning in H2o log_loss:.4868497
+#
+#This function takes three arguements, the train data, the test data,
+# and the features to be used for the deep learning model
+#
+#The y variable is assumed to be in the second column of train
+#
+#depends: library(h2o) library(plyr) and log_loss
+#
+#####################################################################
+
+deepL <- function(train5, test5, explanFeatures) 
+{
+	
+	#initializes a thread by connecting to h2os clusters
+	h2o.init(nthreads = -1)
+
+
+	#turns the numeric outcome variable to a factor
+	train5[,2] = as.factor(train5[,2])
+	test5[,2] = as.factor(test5[,2])
+
+	#converts the two dataframes into h2o frames
+	train5 = as.h2o(train5)
+	test5 = as.h2o(test5)
+
+	#builds the deep learning neural nets using only the features in explanFeatures
+	#2 is the outcome feature
+	trainDL = h2o.deeplearning(x = explanFeatures,y = 2 , training_frame = train5)
+
+	#makes probability predictions on the test5 data using the model built
+	predictions <- h2o.predict(trainDL, newdata = test5, type = "probs")
+
+	#turns h2o output into dataframe
+	DLPred = as.data.frame(predictions[,3])
+
+
+	#initializes outputFrame
+	outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
+	outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
+	
+	#adds ids back into outputFrame
+	outputFrame[,1] = test2[,1]
+
+	#adds the predicted values from the model
+	outputFrame[,2] = DLPred
+	
+	#adds the actual output to the output frame
+	outputFrame[,3] = test2$target
+
+
+	#runs the log_loss model
+	log_loss(outputFrame)
+
+	#returns the probabilities in a data frame
+	return(outputFrame);
+
+}
 
 
 

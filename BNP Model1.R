@@ -30,41 +30,8 @@ test2 = bothFrames[[2]]
 
 
 
-
-
-######################################################################
-#Deep Learning in H2o log_loss:.4868497
-#
-#
-#####################################################################
-h2o.init(nthreads = -1)
-
-train5 = train2[,1:70]; test5 = test2[, 1:70]
-
-train5[,2] = as.factor(train5[,2])
-test5[,2] = as.factor(test5[,2])
-train5 = as.h2o(train5)
-test5 = as.h2o(test5)
-
-trainDL = h2o.deeplearning(x = 3:70,y = 2 , training_frame = train5)
-
-predictions <- h2o.predict(trainDL, newdata = test5, type = "probs")
-
-DLPred = as.data.frame(predictions[,3])
-
-
-	outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
-	outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
-	outputFrame[,1] = test2[,1]
-	outputFrame[,2] = DLPred
-	outputFrame[,3] = test2$target
-
-
-log_loss(outputFrame)
-
-
-
-
+#runs deep learning model
+myout = deepL(train2[,-c(3:85)] , test2[,-c(3:85)],explan) 
 
 #runs gbm model
 output = gbmParse(train2,test2)
@@ -84,14 +51,15 @@ ensembleFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
 ensembleFrame = rename(ensembleFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
 
 
-ensembleFrame[,1] = outputFrame[,1]
-ensembleFrame[,3] = outputFrame[,3]
-ensembleFrame[,2] = .5 * outputFrame[,2] + .5* output[,2]
+ensembleFrame[,1] = myout[,1]
+ensembleFrame[,3] = myout[,3]
+ensembleFrame[,2] = .03 * myout[,2] + .97* output[,2]
 
 log_loss(ensembleFrame)
 
 
-
+#tests the strength of the prediction versus the actual outcome
+cor(cbind(output[,2],myout[,2], ensembleFrame[,2],outputFrame[,3]))
 
 
 
