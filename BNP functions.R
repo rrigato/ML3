@@ -24,10 +24,10 @@ library(h2o)
 
 
 
-split <- function(train)
+split <- function(train, percentage)
 {
 	#edit The percentage of the dataset in the train2 and test2, used to build a model 
-	size_of_train = floor(.8*nrow(train))
+	size_of_train = floor(percentage*nrow(train))
 	ran_num_test = 1:nrow(train)
 
 	#gets random numbers for train2 using a sample
@@ -254,7 +254,9 @@ deepL <- function(train5, test5, explanFeatures)
 
 	#builds the deep learning neural nets using only the features in explanFeatures
 	#2 is the outcome feature
-	trainDL = h2o.deeplearning(x = explanFeatures,y = 2 , training_frame = train5)
+	trainDL = h2o.deeplearning(x = explanFeatures, y = 2 ,
+	hidden = c(10), rho = .99, epochs = 25,
+	 training_frame = train5)
 
 	#makes probability predictions on the test5 data using the model built
 	predictions <- h2o.predict(trainDL, newdata = test5, type = "probs")
@@ -264,7 +266,7 @@ deepL <- function(train5, test5, explanFeatures)
 
 
 	#initializes outputFrame
-	outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
+	outputFrame = data.frame(matrix(nrow= nrow(test5), ncol=3))
 	outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
 	
 	#adds ids back into outputFrame

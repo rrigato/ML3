@@ -9,7 +9,9 @@
 #rename function
 library(plyr)
 library(gbm)
+#neural nets
 library(h2o)
+library(extraTrees)
 
 #import datasets
 train <- read.csv('C:\\Users\\Randy\\Downloads\\Kaggle BNP\\train.csv')
@@ -24,24 +26,81 @@ source("BNP functions.R")
 
 
 #calls the split function to divide the train dataset
-bothFrames = split(train)
+bothFrames = split(train, .8)
 train2 = bothFrames[[1]]
 test2 = bothFrames[[2]]
 
-
+train2[is.na(train2)] = -1
+test2[is.na(test2)] = -1
 
 #runs deep learning model
-myout = deepL(train2[,-c(3:85)] , test2[,-c(3:85)],explan) 
+myout2 = deepL(train2 , test2,explan) 
 
 #runs gbm model
 output = gbmParse(train2,test2)
+
+
+###########################################################################
+#extraTrees model
+#extraTrees cannot have categorical variables for its explanatory variables
+#
+#This function takes two arguements the train data and the test data
+#
+#The y variable is assumed to be in the second column of the train and test dataset
+#
+#depends: library(extraTrees) library(plyr) and log_loss
+############################################################################
+
+
+
+extraTreesParse <- function(train5, test5){
+
+	#x is the variables used to predict the outcome variable y,
+	#which has to be a factor for classification
+	x = train5
+	y = as.factor(train5[,2])
+
+
+	# options( java.parameters = "-Xmx4.5g" )
+
+	#calls the extraTrees function 
+	eT = extraTrees(x,y, mtry = 5, nodesize = 2, numRandomCuts = 2)
+
+	#returns the probabilities and makes it into a dataframe
+	etOut = predict(eT, newdata = test5, probability=TRUE)
+	etOut = as.data.frame(etOut)
+
+
+	#initialize output frame
+	etFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
+	etFrame = rename(etFrame, c("X1" = "id", "X2" = "PredictedProb", "X3" = "actual")) 
+
+	#Puts the ids for the observations into the first column of outputFrame[,1]
+	etFrame[,1] = test5$ID
+
+	#puts the predictions for y being 1 into etFrame2
+	#and the actual in the 3rd column
+	etFrame[,2] = etOut[,2]
+	etFrame[,3] = test5[,3]
+
+	#calls the log loss function to get the actual log_loss from the witheld training data
+	log_loss(etFrame)
+
+}
+
+
+
+
+
+
+
 
 
 
 ##########################################################################################
 #ensemble of gbm with 300 trees and all variables and h2o.deeplearning with variables 3:70
 #.5 h20.deeplearning(.4756146) .5 gbm (.4689628) = .4625459
-#
+#.5 h20.deeplearning(.4802302) .5 gbm (.4725859) = .468787
 #
 #########################################################################################
 
@@ -53,13 +112,13 @@ ensembleFrame = rename(ensembleFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3
 
 ensembleFrame[,1] = myout[,1]
 ensembleFrame[,3] = myout[,3]
-ensembleFrame[,2] = .03 * myout[,2] + .97* output[,2]
+ensembleFrame[,2] = .5 * myout2[,2] + .5* output[,2]
 
 log_loss(ensembleFrame)
 
 
 #tests the strength of the prediction versus the actual outcome
-cor(cbind(output[,2],myout[,2], ensembleFrame[,2],outputFrame[,3]))
+cor(cbind(output[,2],myout2[,2]))
 
 
 
@@ -67,17 +126,6 @@ cor(cbind(output[,2],myout[,2], ensembleFrame[,2],outputFrame[,3]))
 
 
 
-
-
-
-outputFrame = data.frame(matrix(nrow= nrow(test2), ncol=2))
-outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb"))
-
-outputFrame = cbind(outputFrame, test2$target)
-outputFrame[,1] = test2[,1]
-outputFrame[,2] = .76
-
-log_loss(outputFrame)
 
 
 test2 = Normalize(test2)
