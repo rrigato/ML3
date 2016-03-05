@@ -14,8 +14,8 @@ library(h2o)
 library(extraTrees)
 
 #import datasets
-train <- read.csv('C:\\Users\\Randy\\Downloads\\Kaggle BNP\\train.csv')
-test <- read.csv('C:\\Users\\Randy\\Downloads\\Kaggle BNP\\test.csv')
+train <- read.csv('C:\\Users\\Randy\\Downloads\\Kaggle BNP\\trainAll.csv')
+test <- read.csv('C:\\Users\\Randy\\Downloads\\Kaggle BNP\\testAll.csv')
 
 
 #sets the working directory
@@ -26,7 +26,7 @@ source("BNP functions.R")
 
 
 #calls the split function to divide the train dataset
-bothFrames = split(train, .8)
+bothFrames = split(train, .6)
 train2 = bothFrames[[1]]
 test2 = bothFrames[[2]]
 
@@ -61,10 +61,11 @@ extraTreesParse <- function(train5, test5){
 	y = as.factor(train5[,2])
 
 
-	# options( java.parameters = "-Xmx4.5g" )
+	 options( java.parameters = "-Xmx5g" )
 
 	#calls the extraTrees function 
-	eT = extraTrees(x,y, mtry = 5, nodesize = 2, numRandomCuts = 2)
+	eT = extraTrees(x,y, mtry = 20, nodesize = 2, numRandomCuts = 2,
+		na.action ="zero")
 
 	#returns the probabilities and makes it into a dataframe
 	etOut = predict(eT, newdata = test5, probability=TRUE)
@@ -110,9 +111,9 @@ ensembleFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
 ensembleFrame = rename(ensembleFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
 
 
-ensembleFrame[,1] = myout[,1]
-ensembleFrame[,3] = myout[,3]
-ensembleFrame[,2] = .5 * myout2[,2] + .5* output[,2]
+ensembleFrame[,1] = myout2[,1]
+ensembleFrame[,3] = myout2[,3]
+ensembleFrame[,2] = .25 * myout2[,2] + .75* output[,2]
 
 log_loss(ensembleFrame)
 

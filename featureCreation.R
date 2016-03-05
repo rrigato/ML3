@@ -27,15 +27,15 @@ for( i in 3:134)
 }
 
 
-#number of NAs in each row is a variable
-train[1:nrow(train),134] = rowSums(is.na(train))
-test[1:nrow(test),134] = rowSums(is.na(test))
 
 
 train[,134:150] = 0
 test[,133:150] = 0
 
 
+#number of NAs in each row is a variable
+train[1:nrow(train),134] = rowSums(is.na(train[,1:133]))
+test[1:nrow(test),134] = rowSums(is.na(test[,1:133]))
 
 #interaction between v4 and v5
 train[,135] = train[,6] * train[,7]
@@ -281,9 +281,51 @@ test[,174] = test[,127]*test[,128]
 
 
 
+train[,175:181] = 0
+test[,175:181] = 0
+
+
+#130*131
+train[,175] = train[,130]*train[,131]
+test[,175] = test[,129]*test[,130]
+
+
+#131*132
+train[,176] = train[,131]*train[,132]
+test[,176] = test[,130]*test[,131]
 
 
 
+#133*134
+train[,177] = train[,133]*train[,134]
+test[,177] = test[,132]*test[,133]
+
+
+
+
+
+
+
+
+#130*131 ==0
+train[which(train[,175] ==0 ), 178] = 1
+test[which(test[,175]  == 0 ),  178] = 1
+
+
+#130*131 >0
+train[which(train[,175] > 0 ), 179] = 1
+test[which(test[,175]  >  0 ),  179] = 1
+
+
+
+#131*132 ==0
+train[which(train[,176] ==0 ), 180] = 1
+test[which(test[,176]  == 0 ),  180] = 1
+
+
+#131*132 >0
+train[which(train[,176] > 0 ), 181] = 1
+test[which(test[,176]  >  0 ),  181] = 1
 
 
 
