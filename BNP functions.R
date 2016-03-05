@@ -12,9 +12,7 @@
 #extraTreesParse
 ######################################################
 
-library(plyr)
-library(h2o)
-library(extraTrees)
+
 
 ################################################################
 #	Splitting the train dataset into train2 and test2
@@ -176,7 +174,7 @@ log_loss <- function(data_frame)
 #1 for the test set and the actual for the test set
 #
 #
-#Depends: log_loss
+#Depends: library(gbm) log_loss
 #
 #
 #
@@ -190,6 +188,9 @@ log_loss <- function(data_frame)
 #####################################################################################
 gbmParse <- function (train2, test2) {
 
+	library(gbm)
+	library(plyr)
+	
 	#runs gbm takes out id and v22 because v22 has too many levels for a category
 	bTree = gbm(target~. -ID -v22, distribution = "bernoulli", n.trees = 300, shrinkage = .1,
 			interaction.depth =2,  data = train2)
@@ -240,6 +241,8 @@ gbmParse <- function (train2, test2) {
 
 deepL <- function(train5, test5, explanFeatures) 
 {
+	library(h2o)
+	library(plyr)
 	
 	#initializes a thread by connecting to h2os clusters
 	h2o.init(nthreads = -1)
@@ -305,9 +308,11 @@ deepL <- function(train5, test5, explanFeatures)
 ############################################################################
 extraTreesParse <- function(train5, test5){
 
+	library(extraTrees)
+	library(plyr)
 	#x is the variables used to predict the outcome variable y,
 	#which has to be a factor for classification
-	x = train5
+	x = train5[,3:ncol(train5)]
 	y = as.factor(train5[,2])
 
 
@@ -318,7 +323,7 @@ extraTreesParse <- function(train5, test5){
 		na.action ="zero")
 
 	#returns the probabilities and makes it into a dataframe
-	etOut = predict(eT, newdata = test5, probability=TRUE)
+	etOut = predict(eT, newdata = test5[,3:ncol(test5)], probability=TRUE)
 	etOut = as.data.frame(etOut)
 
 
@@ -330,9 +335,9 @@ extraTreesParse <- function(train5, test5){
 	etFrame[,1] = test5$ID
 
 	#puts the predictions for y being 1 into etFrame2
-	#and the actual in the 3rd column
+	#and the actual in the 2nd column
 	etFrame[,2] = etOut[,2]
-	etFrame[,3] = test5[,3]
+	etFrame[,3] = test5[,2]
 
 	#calls the log loss function to get the actual log_loss from the witheld training data
 	log_loss(etFrame)

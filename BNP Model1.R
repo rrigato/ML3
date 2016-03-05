@@ -26,12 +26,21 @@ source("BNP functions.R")
 
 
 #calls the split function to divide the train dataset
-bothFrames = split(train, .6)
+bothFrames = split(train, .8)
 train2 = bothFrames[[1]]
 test2 = bothFrames[[2]]
 
 train2[is.na(train2)] = -1
 test2[is.na(test2)] = -1
+
+
+
+
+#removing variables
+train2 = train2[,-c(19,60,65,109,117)]
+test2 = test2[,-c(19,60,65,109,117)]
+
+
 
 #runs deep learning model
 myout2 = deepL(train2 , test2,explan) 
@@ -40,7 +49,8 @@ myout2 = deepL(train2 , test2,explan)
 output = gbmParse(train2,test2)
 
 
-
+#runs extra trees model
+etOut = extraTreesParse(train2[,c(1,2,134:ncol(train2))],test2[,c(1,2,134:ncol(test2))])
 
 
 
@@ -65,7 +75,7 @@ ensembleFrame = rename(ensembleFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3
 
 ensembleFrame[,1] = myout2[,1]
 ensembleFrame[,3] = myout2[,3]
-ensembleFrame[,2] = .25 * myout2[,2] + .75* output[,2]
+ensembleFrame[,2] = .5 * myout2[,2] + .5* output[,2]
 
 log_loss(ensembleFrame)
 
