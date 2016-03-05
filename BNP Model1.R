@@ -40,54 +40,6 @@ myout2 = deepL(train2 , test2,explan)
 output = gbmParse(train2,test2)
 
 
-###########################################################################
-#extraTrees model
-#extraTrees cannot have categorical variables for its explanatory variables
-#
-#This function takes two arguements the train data and the test data
-#
-#The y variable is assumed to be in the second column of the train and test dataset
-#
-#depends: library(extraTrees) library(plyr) and log_loss
-############################################################################
-
-
-
-extraTreesParse <- function(train5, test5){
-
-	#x is the variables used to predict the outcome variable y,
-	#which has to be a factor for classification
-	x = train5
-	y = as.factor(train5[,2])
-
-
-	 options( java.parameters = "-Xmx5g" )
-
-	#calls the extraTrees function 
-	eT = extraTrees(x,y, mtry = 20, nodesize = 2, numRandomCuts = 2,
-		na.action ="zero")
-
-	#returns the probabilities and makes it into a dataframe
-	etOut = predict(eT, newdata = test5, probability=TRUE)
-	etOut = as.data.frame(etOut)
-
-
-	#initialize output frame
-	etFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
-	etFrame = rename(etFrame, c("X1" = "id", "X2" = "PredictedProb", "X3" = "actual")) 
-
-	#Puts the ids for the observations into the first column of outputFrame[,1]
-	etFrame[,1] = test5$ID
-
-	#puts the predictions for y being 1 into etFrame2
-	#and the actual in the 3rd column
-	etFrame[,2] = etOut[,2]
-	etFrame[,3] = test5[,3]
-
-	#calls the log loss function to get the actual log_loss from the witheld training data
-	log_loss(etFrame)
-
-}
 
 
 
