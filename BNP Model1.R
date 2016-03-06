@@ -57,10 +57,10 @@ test2 = test2[,-c(19,60,65,109,117)]
 
 
 #runs deep learning model
-myout2 = deepL(train2 , test2,explan) 
+deepOut = deepL(train2 , test2,explan) 
 
 #runs gbm model
-output = gbmParse(train2,test2)
+gbmOut = gbmParse(train2,test2)
 
 
 #runs extra trees model
@@ -151,9 +151,8 @@ test3Matrix = data.matrix(test3)
 
 #cross_validation parameters
 numberOfClasses = 2
-param = list( "objective" = "multi:softprob",
-		"eval_metric" = "mlogloss",
-		"num_class" = numberOfClasses
+param = list( "objective" = "binary:logistic",
+		"eval_metric" = "logloss"
 		)
 cv.nround <- 250
 cv.nfold <- 3
@@ -163,10 +162,10 @@ bst.cv = xgb.cv(param=param, data = train2Matrix, label = train2_response,
                 nfold = cv.nfold, nrounds = cv.nround)
 
 #test for optimal nround
-bst.cv[which(min(bst.cv$test.mlogloss.mean) == bst.cv$test.mlogloss.mean),]
+bst.cv[which(min(bst.cv$test.logloss.mean) == bst.cv$test.logloss.mean),]
 
 #sets the number of rounds based on the number of rounds determined by cross_validation
-nround = which(min(bst.cv$test.mlogloss.mean) == bst.cv$test.mlogloss.mean)
+nround = which(min(bst.cv$test.logloss.mean) == bst.cv$test.logloss.mean)
 #actual xgboost
 bst = xgboost(param=param, data = train2Matrix, label = train2_response,
 		gamma = .1, eta = .1, nrounds=nround,
@@ -199,31 +198,20 @@ str(bstPred)
 
 
 #initialize output frame
-xgFrame = data.frame(matrix(nrow= nrow(test2), ncol=4))
-xgFrame = rename(xgFrame, c("X1" = "id", "X2" = "predict_0", "X3" = "predict_1",  "X4" = "Actual")) 
+xgFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
+xgFrame = rename(xgFrame, c("X1" = "id", "X2" = "predictedProb", "X3" = "Actual")) 
 
 #Puts the ids for the observations into the first column of xgFrame[,1]
 xgFrame[,1] = test3id
-xgFrame[,4] = test3_response
+xgFrame[,3] = test3_response
 #test to make sure ids are the same
 sum(xgFrame[,1] != test3id)
 
 
+#probability of y = 1
+xgFrame[,2] = bstPred
 
-z_element = 1
-for (i in 1:nrow(test2))
-{
-	for (z in 1:2)
-	{
-		#the ith row of xgFrame is given observation z_element
-		#probability of occuring from bstPred
-		#column z+1 since id is in column 1
-		xgFrame[i,z+1] = bstPred[z_element]
-		z_element = z_element + 1
-	}
-}
 
-xgFrame = xgFrame[,-c(2)]
 xgFrame2 = xgFrame
 
 
@@ -232,6 +220,25 @@ log_loss(xgFrame)
 
 
 
+######################################################################################
+#
+#
+#feature_selection
+####################################################################################
+
+
+importance_matrix = as.data.frame(importance_matrix)
+
+
+#gets the names of the variables that matter
+top124 = importance_matrix[,1]
+
+
+#gets all the names in train2Matrix
+train2Col = colnames(train2Matrix)
+
+#gets the column numbers of the variables you should keep
+keep = which(train2Col %in%  top124)
 
 
 
@@ -242,7 +249,10 @@ log_loss(xgFrame)
 #ensemble of gbm with 300 trees and all variables and h2o.deeplearning with variables 3:70
 #.5 h20.deeplearning(.4756146) .5 gbm (.4689628) = .4625459
 #.5 h20.deeplearning(.4802302) .5 gbm (.4725859) = .468787
+#deepOut(.4825387) and xgFrame(.4785925) = .475112
 #
+#
+#.33*gbmOut( 0.4812537) and .33*deepOut( 0.483595) and .33*xgFrame(.4802912) = .4759635
 #########################################################################################
 
 
@@ -251,15 +261,15 @@ ensembleFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
 ensembleFrame = rename(ensembleFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
 
 
-ensembleFrame[,1] = myout2[,1]
-ensembleFrame[,3] = myout2[,3]
-ensembleFrame[,2] = .5 * myout2[,2] + .5* output[,2]
+ensembleFrame[,1] = deepOut[,1]
+ensembleFrame[,3] = deepOut[,3]
+ensembleFrame[,2] = .25 * deepOut[,2] + .5* xgFrame[,2] + .25*gbmOut[,2]
 
 log_loss(ensembleFrame)
 
 
 #tests the strength of the prediction versus the actual outcome
-cor(cbind(output[,2],myout2[,2]))
+cor(cbind(xgFrame[,2],deepOut[,2], gbmOut[,2]))
 
 
 
