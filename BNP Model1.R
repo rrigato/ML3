@@ -21,6 +21,7 @@ library(xgboost)
 library(methods)
 library(data.table)
 library(magrittr)
+library(Matrix)
 
 
 
@@ -56,11 +57,30 @@ test2 = test2[,-c(19,60,65,109,117)]
 
 
 
+keep = numeric()
+keep_count = 1
+for(i in 1:ncol(train))
+{
+	if(is.factor(train[,i]))
+	{
+		keep[keep_count] = i
+		keep_count = keep_count + 1 
+	}
+}
+
+
+
+
+#one hot encoding on variables
+temp2 = sparse.model.matrix(Target~temp -1, data = temp)
+
+
+
 #runs deep learning model
-deepOut = deepL(train2 , test2,explan) 
+deepOut = deepL(train2[c(1,2,keep)],test2[c(1,2,keep)],explan) 
 
 #runs gbm model
-gbmOut = gbmParse(train2,test2)
+gbmOut = gbmParse(train2[c(1,2,keep)],test2[c(1,2,keep)])
 
 
 #runs extra trees model
@@ -253,6 +273,14 @@ keep = which(train2Col %in%  top124)
 #
 #
 #.33*gbmOut( 0.4812537) and .33*deepOut( 0.483595) and .33*xgFrame(.4802912) = .4759635
+#
+#
+#.5gbmOut(0.4939747) + .5 xgFrame(0.482375) = .478009
+#
+#
+#
+#
+#
 #########################################################################################
 
 
@@ -261,9 +289,9 @@ ensembleFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
 ensembleFrame = rename(ensembleFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
 
 
-ensembleFrame[,1] = deepOut[,1]
-ensembleFrame[,3] = deepOut[,3]
-ensembleFrame[,2] = .25 * deepOut[,2] + .5* xgFrame[,2] + .25*gbmOut[,2]
+ensembleFrame[,1] = gbmOut[,1]
+ensembleFrame[,3] = gbmOut[,3]
+ensembleFrame[,2] = .5* xgFrame[,2] + .25*gbmOut[,2]+ .25*deepOut[,2]
 
 log_loss(ensembleFrame)
 
