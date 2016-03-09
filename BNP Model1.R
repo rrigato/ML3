@@ -70,10 +70,10 @@ for(i in 1:ncol(train))
 
 
 
-
+ colnames(train[,keep])
 #one hot encoding on variables
-temp2 = sparse.model.matrix(Target~temp -1, data = temp)
-
+train2Matrix = sparse.model.matrix(~. -1, data = train2)
+test3Matrix = sparse.model.matrix(~. -1, data = test3)
 
 
 #runs deep learning model
