@@ -72,15 +72,21 @@ for(i in 1:ncol(train))
 
  colnames(train[,keep])
 #one hot encoding on variables
-train2Matrix = sparse.model.matrix(~. -1, data = train2)
-test3Matrix = sparse.model.matrix(~. -1, data = test3)
+train2Matrix = sparse.model.matrix(~. -v22 -1, data = train2)
+test3Matrix = sparse.model.matrix(~. - v22 -1, data = test3)
 
 
 #runs deep learning model
-deepOut = deepL(train2[c(1,2,keep)],test2[c(1,2,keep)],explan) 
+deepOut = deepL(train5,test5,explan) 
 
+
+train5 = as.data.frame(cbind(train2id,train2_response,as.character(train2[,22])))
+train5 = rename(train5, c("train2_response" = "target", "train2id" = "ID"))
+
+test5 = as.data.frame(cbind(test3id,test3_response,as.character(test3[,22])))
+test5 = rename(test5, c("test3_response" = "target", "test3id" = "ID"))
 #runs gbm model
-gbmOut = gbmParse(train2[c(1,2,keep)],test2[c(1,2,keep)])
+gbmOut = gbmParse()
 
 
 #runs extra trees model
@@ -289,9 +295,9 @@ ensembleFrame = data.frame(matrix(nrow= nrow(test2), ncol=3))
 ensembleFrame = rename(ensembleFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
 
 
-ensembleFrame[,1] = gbmOut[,1]
-ensembleFrame[,3] = gbmOut[,3]
-ensembleFrame[,2] = .5* xgFrame[,2] + .25*gbmOut[,2]+ .25*deepOut[,2]
+ensembleFrame[,1] = xgFrame[,1]
+ensembleFrame[,3] = xgFrame[,3]
+ensembleFrame[,2] = .95* xgFrame[,2] +  .05*deepOut[,2]
 
 log_loss(ensembleFrame)
 

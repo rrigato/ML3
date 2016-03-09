@@ -17,7 +17,7 @@ test3 = test[,-c(1)]
 
 length(test3id) == nrow(test3)
 
-
+test3Matrix = sparse.model.matrix(~. - v22 -1, data = test)
 
 
 
@@ -63,7 +63,7 @@ sum(is.na(finalFrame))
 #should be no more than 114393
 sum(finalFrame[,2])
 
-write.csv(finalFrame, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results1.csv",
+write.csv(finalFrame, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results2.csv",
 		row.names = FALSE)
 
 
