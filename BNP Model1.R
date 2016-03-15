@@ -41,7 +41,7 @@ source("BNP functions.R")
 
 
 #calls the split function to divide the train dataset
-bothFrames = split(train, .8)
+bothFrames = split(train, 1)
 train2 = bothFrames[[1]]
 test2 = bothFrames[[2]]
 
@@ -169,8 +169,7 @@ test3Matrix = data.matrix(test3)
 #test3Matrix = test3Matrix[,keep]
 
 
-#train2Matrix = train2Matrix[,452:493]
-#test3Matrix = test3Matrix[,452:493]
+
 
 
 

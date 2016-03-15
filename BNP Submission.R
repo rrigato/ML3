@@ -63,7 +63,7 @@ sum(is.na(finalFrame))
 #should be no more than 114393
 sum(finalFrame[,2])
 
-write.csv(finalFrame, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results2.csv",
+write.csv(finalFrame, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results4.csv",
 		row.names = FALSE)
 
 
