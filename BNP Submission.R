@@ -51,10 +51,6 @@ sum(finalFrame[,1] != test3id)
 #probability of y = 1
 finalFrame[,2] = bstPred
 
-
-
-
-
 #validation
 nrow(finalFrame) == length(unique(test3id))
 sum(finalFrame$id != unique(test3id))
@@ -63,7 +59,61 @@ sum(is.na(finalFrame))
 #should be no more than 114393
 sum(finalFrame[,2])
 
-write.csv(finalFrame, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results4.csv",
+
+
+write.csv(finalFrame, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results10.csv",
+		row.names = FALSE)
+
+
+
+
+
+
+
+##################################################################################
+#Ensemble Extra Trees classifier with xgboost
+#
+#
+#
+#
+###############################################################################
+
+etClassifier = read.csv("C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results5.csv")
+
+str(etClassifier)
+
+nrow(finalFrame) == nrow(etClassifier)
+
+sum(etClassifier[,2])
+sum(finalFrame[,2])
+
+#initialize output frame
+finalEnsemble = data.frame(matrix(nrow= nrow(test), ncol=2))
+finalEnsemble = rename(finalEnsemble, c("X1" = "ID", "X2" = "PredictedProb")) 
+
+#Puts the ids for the observations into the first column of finalEnsemble[,1]
+finalEnsemble[,1] = test3id
+
+
+
+
+finalEnsemble[,2] = .5* finalFrame[,2] + .5* etClassifier[,2]
+head(etClassifier); head(finalFrame);head(finalEnsemble)
+
+
+
+#validation
+nrow(finalEnsemble) == length(unique(test3id))
+sum(finalEnsemble$id != unique(test3id))
+sum(is.na(finalEnsemble))
+
+#should be no more than 114393
+sum(finalEnsemble[,2])
+
+
+
+
+write.csv(finalEnsemble, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results6.csv",
 		row.names = FALSE)
 
 

@@ -41,7 +41,7 @@ source("BNP functions.R")
 
 
 #calls the split function to divide the train dataset
-bothFrames = split(train, 1)
+bothFrames = split(train, .9)
 train2 = bothFrames[[1]]
 test2 = bothFrames[[2]]
 
@@ -209,7 +209,7 @@ names <- dimnames(train2Matrix)[[2]]
 importance_matrix <- xgb.importance(names, model = bst); importance_matrix
 
 # Nice graph for importance
-xgb.plot.importance(importance_matrix[1:100,])
+#xgb.plot.importance(importance_matrix[1:100,])
 
 
 
