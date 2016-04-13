@@ -42,7 +42,7 @@ source("BNP functions.R")
 
 
 #calls the split function to divide the train dataset
-bothFrames = split(train, .9)
+bothFrames = split(train, 1)
 train2 = bothFrames[[1]]
 test2 = bothFrames[[2]]
 
@@ -54,8 +54,8 @@ test2[is.na(test2)] = -1
 
 #removing variables
 str(train[,c(19,60,65,109,117)])
-train5 = train2[,-c(19,60,65,109,117)]
-test5 = test2[,-c(19,60,65,109,117)]
+train2 = train2[,-c(19,52,60,65,109,117)]
+test2 = test2[,-c(19,52,60,65,109,117)]
 
 
 

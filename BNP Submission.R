@@ -87,17 +87,19 @@ nrow(finalFrame) == nrow(etClassifier)
 sum(etClassifier[,2])
 sum(finalFrame[,2])
 
+cor(etClassifier[,2], finalFrame[,2])
+
 #initialize output frame
 finalEnsemble = data.frame(matrix(nrow= nrow(test), ncol=2))
 finalEnsemble = rename(finalEnsemble, c("X1" = "ID", "X2" = "PredictedProb")) 
 
 #Puts the ids for the observations into the first column of finalEnsemble[,1]
-finalEnsemble[,1] = test3id
+finalEnsemble[,1] = test[,1]
 
 
 
 
-finalEnsemble[,2] = .5* finalFrame[,2] + .5* etClassifier[,2]
+finalEnsemble[,2] = .69* finalFrame[,2] + .31* etClassifier[,2]
 head(etClassifier); head(finalFrame);head(finalEnsemble)
 
 
@@ -113,7 +115,7 @@ sum(finalEnsemble[,2])
 
 
 
-write.csv(finalEnsemble, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results6.csv",
+write.csv(finalEnsemble, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results10.csv",
 		row.names = FALSE)
 
 
