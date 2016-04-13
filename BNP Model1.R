@@ -32,7 +32,8 @@ library(Matrix)
 train <- read.csv('C:\\Users\\Randy\\Downloads\\Kaggle BNP\\trainAll.csv')
 test <- read.csv('C:\\Users\\Randy\\Downloads\\Kaggle BNP\\testAll.csv')
 
-
+#remove an extra variable that has no variation
+test = test[,-133]
 #sets the working directory
 setwd('C:/Users/Randy/Downloads/Kaggle BNP/ML3')
 
@@ -52,8 +53,9 @@ test2[is.na(test2)] = -1
 
 
 #removing variables
-train2 = train2[,-c(19,60,65,109,117)]
-test2 = test2[,-c(19,60,65,109,117)]
+str(train[,c(19,60,65,109,117)])
+train5 = train2[,-c(19,60,65,109,117)]
+test5 = test2[,-c(19,60,65,109,117)]
 
 
 

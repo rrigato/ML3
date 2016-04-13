@@ -118,6 +118,38 @@ write.csv(finalEnsemble, "C:\\Users\\Randy\\Downloads\\Kaggle BNP\\Results6.csv"
 
 
 
+############################################################################
+#deep learning classifier
+#
+#
+#
+##############################################################################
+
+
+ which(colnames(train[,3:ncol(train)])!=colnames(test[,2:ncol(test)])
+colHold = numeric(nrow(test))
+
+trimTest = cbind(test[,1],colHold, test[,2:ncol(test)])
+ncol(trimTest) == ncol(train)
+#makes probability predictions on the test5 data using the model built
+	predictions <- h2o.predict(trainDL, newdata = test, type = "probs")
+
+	#turns h2o output into dataframe
+	DLPred = as.data.frame(predictions[,3])
+
+
+	#initializes outputFrame
+	outputFrame = data.frame(matrix(nrow= nrow(test5), ncol=3))
+	outputFrame = rename(outputFrame, c("X1" = "ID", "X2" = "PredictedProb", "X3" = "actual"))
+	
+	#adds ids back into outputFrame
+	outputFrame[,1] = test2[,1]
+
+	#adds the predicted values from the model
+	outputFrame[,2] = DLPred
+	
+	#adds the actual output to the output frame
+	outputFrame[,3] = test$target
 
 
 
